@@ -1,5 +1,3 @@
-
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -14,28 +12,26 @@ import DocumentDashboard from "./pages/DocumentDashboard";
 import UserMilestones from "./pages/UserMilestones";
 import UserDocuments from "./pages/UserDocuments";
 import AllProjects from "./pages/AllProjects";
-import ManageMembers from "./pages/ManageMembers"; // ✅ NEW IMPORT
+import ManageMembers from "./pages/ManageMembers";
 
-// ✅ Updated Protected route wrapper to support multiple roles
+// Protected Route
 const ProtectedRoute: React.FC<{ children: JSX.Element; roles?: string[] }> = ({
   children,
   roles,
 }) => {
   const { user } = useAuth();
-  
-  if (!user) return <Navigate to="/login" />;
-  
-  // If roles are specified, check if user's role is in the allowed list
+
+  if (!user) return <Navigate to="/login" replace />;
+
   if (roles && roles.length > 0) {
     if (!user.role || !roles.includes(user.role)) {
-      // Redirect based on user's actual role
-      if (user.role === "ADMIN") return <Navigate to="/admin" />;
-      if (user.role === "PI") return <Navigate to="/allprojects" />;
-      if (user.role === "MEMBER") return <Navigate to="/user" />;
-      return <Navigate to="/login" />;
+      if (user.role === "ADMIN") return <Navigate to="/admin" replace />;
+      if (user.role === "PI") return <Navigate to="/allprojects" replace />;
+      if (user.role === "MEMBER") return <Navigate to="/user" replace />;
+      return <Navigate to="/login" replace />;
     }
   }
-  
+
   return children;
 };
 
@@ -44,26 +40,30 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Login and Register */}
-     <Route
-  path="/"
-  element={
-    user ? (
-      user.role === "ADMIN" ? (
-        <Navigate to="/admin" />
-      ) : user.role === "PI" ? (
-        <Navigate to="/allprojects" />
-      ) : (
-        <Navigate to="/user" />
-      )
-    ) : (
-      <Navigate to="/login" />
-    )
-  }
-/>
+      {/* DEFAULT ROUTE */}
+      <Route
+        path="/"
+        element={
+          user ? (
+            user.role === "ADMIN" ? (
+              <Navigate to="/admin" replace />
+            ) : user.role === "PI" ? (
+              <Navigate to="/allprojects" replace />
+            ) : (
+              <Navigate to="/user" replace />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      {/* ✅ LOGIN ROUTE (Missing before — caused blank page) */}
+      <Route path="/login" element={<Login />} />
+
       <Route path="/register" element={<Register />} />
 
-      {/* Admin Dashboard - ADMIN only */}
+      {/* ADMIN ONLY */}
       <Route
         path="/admin"
         element={
@@ -73,7 +73,6 @@ const AppRoutes = () => {
         }
       />
 
-      {/* ✅ NEW: Manage Members Page - ADMIN only */}
       <Route
         path="/manage-members"
         element={
@@ -83,7 +82,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* ✅ All Projects Page - Accessible to ADMIN and PI */}
+      {/* ADMIN + PI */}
       <Route
         path="/allprojects"
         element={
@@ -93,7 +92,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* User Dashboard - MEMBER only */}
+      {/* MEMBER ONLY */}
       <Route
         path="/user"
         element={
@@ -103,7 +102,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Admin: Milestones & Documents - ADMIN only */}
+      {/* ADMIN MILESTONES/DOCS */}
       <Route
         path="/projects/:projectId/milestones"
         element={
@@ -112,6 +111,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/projects/:projectId/documents"
         element={
@@ -121,7 +121,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* User: Milestones & Documents (Read-Only) - MEMBER only */}
+      {/* MEMBER VIEW */}
       <Route
         path="/user/projects/:projectId/milestones"
         element={
@@ -130,6 +130,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/user/projects/:projectId/documents"
         element={
@@ -139,13 +140,13 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Default fallback */}
-      <Route path="*" element={<Navigate to="/login" />} />
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };
 
-// ✅ Main App component
+// Main App
 const App: React.FC = () => (
   <AuthProvider>
     <Router>
@@ -155,6 +156,7 @@ const App: React.FC = () => (
 );
 
 export default App;
+
 
 
 
